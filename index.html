@@ -1,392 +1,642 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Control de Gastos y Deudas</title>
-  <style>
-    /* Variables de CSS */
-    :root {
-      --primary: #6366f1;
-      --primary-hover: #4f46e5;
-      --background: #f9fafb;
-      --card: #ffffff;
-      --text: #1f2937;
-      --text-light: #6b7280;
-      --danger: #ef4444;
-      --success: #10b981;
-    }
-    /* Reset y estilos globales */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-        Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
-    }
-    body {
-      background: var(--background);
-      color: var(--text);
-      padding: 20px;
-    }
-    .container {
-      max-width: 1000px;
-      margin: 0 auto;
-    }
-    header {
-      text-align: center;
-      margin-bottom: 30px;
-    }
-    h1 {
-      font-size: 2rem;
-      margin-bottom: 10px;
-      color: var(--primary);
-    }
-    .button-group {
-      margin-top: 10px;
-    }
-    .button-group button {
-      margin: 0 5px;
-    }
-    .summary {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 20px;
-      margin-bottom: 30px;
-    }
-    .card {
-      background: var(--card);
-      border-radius: 8px;
-      padding: 20px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    }
-    .card h2 {
-      font-size: 1.2rem;
-      margin-bottom: 15px;
-      color: var(--text-light);
-    }
-    .amount {
-      font-size: 1.8rem;
-      font-weight: bold;
-    }
-    .amount.negative {
-      color: var(--danger);
-    }
-    .amount.positive {
-      color: var(--success);
-    }
-    .tabs {
-      display: flex;
-      margin-bottom: 20px;
-      border-bottom: 1px solid #e5e7eb;
-    }
-    .tab {
-      padding: 10px 20px;
-      cursor: pointer;
-      border-bottom: 2px solid transparent;
-    }
-    .tab.active {
-      border-bottom: 2px solid var(--primary);
-      color: var(--primary);
-      font-weight: bold;
-    }
-    .tab-content {
-      display: none;
-    }
-    .tab-content.active {
-      display: block;
-    }
-    form {
-      display: grid;
-      gap: 15px;
-      margin-bottom: 20px;
-    }
-    .form-group {
-      display: flex;
-      flex-direction: column;
-    }
-    label {
-      margin-bottom: 5px;
-      font-weight: 500;
-    }
-    input, select, textarea {
-      padding: 10px;
-      border: 1px solid #d1d5db;
-      border-radius: 6px;
-      font-size: 1rem;
-    }
-    textarea {
-      resize: vertical;
-      min-height: 80px;
-    }
-    button {
-      background: var(--primary);
-      color: white;
-      border: none;
-      border-radius: 6px;
-      padding: 12px;
-      font-size: 1rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    button:hover {
-      background: var(--primary-hover);
-    }
-    .list {
-      overflow-y: auto;
-      max-height: 400px;
-    }
-    .item {
-      background: var(--card);
-      border-radius: 8px;
-      padding: 15px;
-      margin-bottom: 10px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .item-details {
-      flex: 1;
-    }
-    .item-title {
-      font-weight: 600;
-      margin-bottom: 5px;
-    }
-    .item-desc {
-      color: var(--text-light);
-      font-size: 0.9rem;
-      white-space: pre-wrap;
-    }
-    .item-amount {
-      font-weight: bold;
-      margin-left: 20px;
-    }
-    .item-amount.negative {
-      color: var(--danger);
-    }
-    .item-amount.positive {
-      color: var(--success);
-    }
-    .item-date {
-      font-size: 0.8rem;
-      color: var(--text-light);
-      margin-top: 5px;
-    }
-    .action-buttons {
-      display: flex;
-      gap: 5px;
-    }
-    .btn-small {
-      padding: 5px 10px;
-      font-size: 0.8rem;
-    }
-    .btn-edit {
-      background: #f59e0b;
-    }
-    .btn-delete {
-      background: var(--danger);
-    }
-    .filters {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 15px;
-    }
-    .filter-group {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-    .modal {
-      display: none;
-      position: fixed;
-      z-index: 100;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.5);
-      align-items: center;
-      justify-content: center;
-    }
-    .modal-content {
-      background: var(--card);
-      border-radius: 8px;
-      padding: 20px;
-      width: 100%;
-      max-width: 500px;
-      box-shadow: 0 10px 15px rgba(0,0,0,0.1);
-    }
-    .modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-    }
-    .modal-title {
-      font-size: 1.5rem;
-    }
-    .close-modal {
-      background: none;
-      border: none;
-      font-size: 1.5rem;
-      cursor: pointer;
-      color: var(--text-light);
-    }
-    #reporte {
-      margin-top: 20px;
-    }
-    @media (min-width: 768px) {
-      form {
-        grid-template-columns: 1fr 1fr;
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Control de Gastos y Deudas</title>
+    <style>
+      :root {
+        --primary: #6366f1;
+        --primary-hover: #4f46e5;
+        --background: #f9fafb;
+        --card: #ffffff;
+        --text: #1f2937;
+        --text-light: #6b7280;
+        --danger: #ef4444;
+        --success: #10b981;
       }
-      form button {
-        grid-column: span 2;
+
+      /* Tema oscuro */
+      body.dark {
+        --primary: #bb86fc;
+        --primary-hover: #3700b3;
+        --background: #121212;
+        --card: #1e1e1e;
+        --text: #e0e0e0;
+        --text-light: #a1a1a1;
+        --danger: #cf6679;
+        --success: #03dac6;
       }
-    }
-    @media print {
-      .no-print {
-        display: none;
+      button {
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        padding: 12px;
+        font-size: 1rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background 0.3s, transform 0.2s;
+      }
+
+      button:hover {
+        background: var(--primary-hover);
+        transform: scale(1.05);
+      }
+
+      /* Reset y estilos globales */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
       }
       body {
-        padding: 0;
-        background: white;
+        background: var(--background);
+        color: var(--text);
+        padding: 20px;
+        transition: background-color 0.3s, color 0.3s;
       }
       .container {
-        max-width: 100%;
+        max-width: 1000px;
+        margin: 0 auto;
       }
-    }
-    .recommendation {
-      margin-top: 10px;
-      padding: 10px;
-      background: #f3f4f6;
-      border-radius: 6px;
-      font-size: 0.9rem;
-    }
-    .recommendation strong {
-      color: var(--primary);
-    }
-    /* Notificaciones */
-    .notification {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background: var(--danger);
-      color: white;
-      padding: 15px 25px;
-      border-radius: 8px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-      animation: slideIn 0.3s ease-out;
-      z-index: 1000;
-      display: none;
-    }
-    .notification.visible {
-      display: block;
-    }
-    @keyframes slideIn {
-      from { transform: translateX(100%); }
-      to { transform: translateX(0); }
-    }
-    /* Badges de alerta */
-    .tab .badge {
-      background: var(--danger);
-      color: white;
-      border-radius: 12px;
-      padding: 2px 8px;
-      font-size: 0.75rem;
-      margin-left: 6px;
-    }
-    /* Colores de estado */
-    .vencida {
-      border-left: 4px solid var(--danger);
-    }
-    .proxima {
-      border-left: 4px solid #f59e0b;
-    }
-    .pagada {
-      border-left: 4px solid var(--success);
-    }
-  </style>
-</head>
-<body>
-  <!-- Notificaciones -->
-  <div id="notification-center">
-    <div class="notification" id="main-notification"></div>
-  </div>
-  <div class="container">
-    <header>
-      <h1>Control de Gastos y Deudas</h1>
-      <div class="button-group">
-        <button onclick="saveFile()">Guardar como</button>
-        <button onclick="loadFile()">Abrir</button>
-        <button onclick="newFile()">Nuevo</button>
-      </div>
-      <div style="margin-top:15px; max-width:300px; margin:0 auto;">
-        <div class="form-group">
-          <label for="salario-semanal">Salario Semanal ($):</label>
-          <input type="number" id="salario-semanal" step="0.01" style="text-align:center; font-weight:bold;" />
+      header {
+        text-align: center;
+        margin-bottom: 30px;
+      }
+      h1 {
+        font-size: 2rem;
+        margin-bottom: 10px;
+        color: var(--primary);
+      }
+      .button-group {
+        margin-top: 10px;
+      }
+      .button-group button {
+        margin: 0 5px;
+      }
+      .summary {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+      }
+      .card {
+        background: var(--card);
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+      .card h2 {
+        font-size: 1.2rem;
+        margin-bottom: 15px;
+        color: var(--text-light);
+      }
+      .amount {
+        font-size: 1.8rem;
+        font-weight: bold;
+      }
+      .amount.negative {
+        color: var(--danger);
+      }
+      .amount.positive {
+        color: var(--success);
+      }
+      .tabs {
+        display: flex;
+        margin-bottom: 20px;
+        border-bottom: 1px solid #e5e7eb;
+      }
+      .tab {
+        padding: 10px 20px;
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+      }
+      .tab.active {
+        border-bottom: 2px solid var(--primary);
+        color: var(--primary);
+        font-weight: bold;
+      }
+      .tab-content {
+        display: none;
+      }
+      .tab-content.active {
+        display: block;
+      }
+      form {
+        display: grid;
+        gap: 15px;
+        margin-bottom: 20px;
+      }
+      .form-group {
+        display: flex;
+        flex-direction: column;
+      }
+      label {
+        margin-bottom: 5px;
+        font-weight: 500;
+      }
+      input,
+      select,
+      textarea {
+        padding: 10px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-size: 1rem;
+      }
+      textarea {
+        resize: vertical;
+        min-height: 80px;
+      }
+      button {
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        padding: 12px;
+        font-size: 1rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      button:hover {
+        background: var(--primary-hover);
+      }
+      .list {
+        overflow-y: auto;
+        max-height: 400px;
+      }
+      .item {
+        background: var(--card);
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 10px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .item-details {
+        flex: 1;
+      }
+      .item-title {
+        font-weight: 600;
+        margin-bottom: 5px;
+      }
+      .item-desc {
+        color: var(--text-light);
+        font-size: 0.9rem;
+        white-space: pre-wrap;
+      }
+      .item-amount {
+        font-weight: bold;
+        margin-left: 20px;
+      }
+      .item-amount.negative {
+        color: var(--danger);
+      }
+      .item-amount.positive {
+        color: var(--success);
+      }
+      .item-date {
+        font-size: 0.8rem;
+        color: var(--text-light);
+        margin-top: 5px;
+      }
+      .action-buttons {
+        display: flex;
+        gap: 5px;
+      }
+      .btn-small {
+        padding: 5px 10px;
+        font-size: 0.8rem;
+      }
+      .btn-edit {
+        background: #f59e0b;
+      }
+      .btn-delete {
+        background: var(--danger);
+      }
+      .filters {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 15px;
+      }
+      .filter-group {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 100;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        align-items: center;
+        justify-content: center;
+      }
+      .modal-content {
+        background: var(--card);
+        border-radius: 8px;
+        padding: 20px;
+        width: 100%;
+        max-width: 500px;
+        box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+      }
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+      .modal-title {
+        font-size: 1.5rem;
+      }
+      .close-modal {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: var(--text-light);
+      }
+      #reporte {
+        margin-top: 20px;
+      }
+      @media (min-width: 768px) {
+        form {
+          grid-template-columns: 1fr 1fr;
+        }
+        form button {
+          grid-column: span 2;
+        }
+      }
+      @media print {
+        .no-print {
+          display: none;
+        }
+        body {
+          padding: 0;
+          background: white;
+        }
+        .container {
+          max-width: 100%;
+        }
+      }
+      .recommendation {
+        margin-top: 10px;
+        padding: 10px;
+        background: #f3f4f6;
+        border-radius: 6px;
+        font-size: 0.9rem;
+      }
+      .recommendation strong {
+        color: var(--primary);
+      }
+      /* Notificaciones */
+      .notification {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: var(--danger);
+        color: white;
+        padding: 15px 25px;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        animation: slideIn 0.3s ease-out;
+        z-index: 1000;
+        display: none;
+      }
+      .notification.visible {
+        display: block;
+      }
+      @keyframes slideIn {
+        from {
+          transform: translateX(100%);
+        }
+        to {
+          transform: translateX(0);
+        }
+      }
+      /* Badges de alerta */
+      .tab .badge {
+        background: var(--danger);
+        color: white;
+        border-radius: 12px;
+        padding: 2px 8px;
+        font-size: 0.75rem;
+        margin-left: 6px;
+      }
+      /* Colores de estado */
+      .vencida {
+        border-left: 4px solid var(--danger);
+      }
+      .proxima {
+        border-left: 4px solid #f59e0b;
+      }
+      .pagada {
+        border-left: 4px solid var(--success);
+      }
+      /* Estilos para el botón hamburguesa */
+      #hamburger-menu {
+        display: none;
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+      }
+
+      /* Menú de navegación para móviles */
+      .mobile-nav {
+        display: none;
+        background: var(--card);
+        position: absolute;
+        top: 60px; /* Ajusta según el alto de tu header */
+        left: 0;
+        width: 100%;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: max-height 0.3s ease;
+      }
+      .mobile-nav.open {
+        display: block;
+      }
+
+      .mobile-nav ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+      .mobile-nav li {
+        border-bottom: 1px solid #ddd;
+      }
+      .mobile-nav li a {
+        display: block;
+        padding: 10px;
+        color: var(--text);
+        text-decoration: none;
+      }
+
+      /* Mostrar el botón hamburguesa y ocultar la navegación por pestañas en móviles */
+      @media (max-width: 600px) {
+        #hamburger-menu {
+          display: inline-block;
+        }
+        .tabs {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Notificaciones -->
+
+    <div id="notification-center">
+      <div class="notification" id="main-notification"></div>
+    </div>
+    <div class="container">
+      <header>
+        <h1>Control de Gastos y Deudas</h1>
+        <div class="button-group">
+          <button onclick="saveFile()">Guardar como</button>
+          <button onclick="loadFile()">Abrir</button>
+          <button onclick="newFile()">Nuevo</button>
+          <button id="theme-toggle" aria-label="Cambiar tema">
+            Cambiar Tema
+          </button>
+          <!-- Botón hamburguesa para móvil -->
+          <button id="hamburger-menu" aria-label="Menú" aria-expanded="false">
+            &#9776;
+          </button>
         </div>
-      </div>
-    </header>
-    <main>
-      <section class="summary">
-        <div class="card">
-          <h2>Salario Semanal</h2>
-          <div id="salario-display" class="amount positive">$0.00</div>
-        </div>
-        <div class="card">
-          <h2>Presupuesto Restante</h2>
-          <div id="presupuesto-restante" class="amount">$0.00</div>
-        </div>
-        <div class="card">
-          <h2>Deudas pendientes</h2>
-          <div id="total-debt" class="amount negative">$0.00</div>
-        </div>
-        <div class="card">
-          <h2>Pagos realizados</h2>
-          <div id="total-paid" class="amount positive">$0.00</div>
-        </div>
-        <div class="card no-print">
-          <h2>Análisis por Categoría</h2>
-          <canvas id="categorias-chart"></canvas>
-        </div>
-        <div class="card no-print">
-          <h2>Presupuestos Mensuales</h2>
-          <div id="presupuestos-list"></div>
-          <button onclick="openBudgetModal()">Agregar Presupuesto</button>
-        </div>
-      </section>
-      <section class="tabs no-print">
-        <div class="tab active" data-tab="deudas">Deudas</div>
-        <div class="tab" data-tab="pagos">Pagos</div>
-        <div class="tab" data-tab="reportes">Reportes</div>
-      </section>
-      <section id="deudas-tab" class="tab-content active no-print">
-        <form id="deuda-form">
+        <!-- Menú de navegación para móviles -->
+        <nav
+          id="mobile-nav"
+          class="mobile-nav"
+          aria-label="Navegación principal"
+        >
+          <ul>
+            <li><a href="#deudas-tab">Deudas</a></li>
+            <li><a href="#pagos-tab">Pagos</a></li>
+            <li><a href="#reportes-tab">Reportes</a></li>
+          </ul>
+        </nav>
+        <div style="margin-top: 15px; max-width: 300px; margin: 0 auto">
           <div class="form-group">
-            <label for="deuda-nombre">Nombre/Concepto:</label>
-            <input type="text" id="deuda-nombre" required />
+            <label for="salario-semanal">Salario Semanal ($):</label>
+            <input
+              type="number"
+              id="salario-semanal"
+              step="0.01"
+              style="text-align: center; font-weight: bold"
+            />
+          </div>
+        </div>
+      </header>
+      <main>
+        <section class="summary">
+          <div class="card">
+            <h2>Salario Semanal</h2>
+            <div id="salario-display" class="amount positive">$0.00</div>
+          </div>
+          <div class="card">
+            <h2>Presupuesto Restante</h2>
+            <div id="presupuesto-restante" class="amount">$0.00</div>
+          </div>
+          <div class="card">
+            <h2>Deudas pendientes</h2>
+            <div id="total-debt" class="amount negative">$0.00</div>
+          </div>
+          <div class="card">
+            <h2>Pagos realizados</h2>
+            <div id="total-paid" class="amount positive">$0.00</div>
+          </div>
+          <div class="card no-print">
+            <h2>Análisis por Categoría</h2>
+            <canvas id="categorias-chart"></canvas>
+          </div>
+          <div class="card no-print">
+            <h2>Presupuestos Mensuales</h2>
+            <div id="presupuestos-list"></div>
+            <button onclick="openBudgetModal()">Agregar Presupuesto</button>
+          </div>
+        </section>
+        <section class="tabs no-print">
+          <div class="tab active" data-tab="deudas">Deudas</div>
+          <div class="tab" data-tab="pagos">Pagos</div>
+          <div class="tab" data-tab="reportes">Reportes</div>
+        </section>
+        <section id="deudas-tab" class="tab-content active no-print">
+          <form id="deuda-form">
+            <div class="form-group">
+              <label for="deuda-nombre">Nombre/Concepto:</label>
+              <input type="text" id="deuda-nombre" required />
+            </div>
+            <div class="form-group">
+              <label for="deuda-monto">Monto ($):</label>
+              <input
+                type="number"
+                id="deuda-monto"
+                min="0.01"
+                step="0.01"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="deuda-fecha">Fecha:</label>
+              <input type="date" id="deuda-fecha" required />
+            </div>
+            <div class="form-group">
+              <label for="deuda-tipo">Tipo:</label>
+              <select id="deuda-tipo">
+                <option value="mensual">Mensual</option>
+                <option value="diaria">Diaria</option>
+                <option value="unica">Única</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="deuda-categoria">Categoría:</label>
+              <select id="deuda-categoria" required>
+                <option value="hogar">Hogar</option>
+                <option value="transporte">Transporte</option>
+                <option value="comida">Comida</option>
+                <option value="entretenimiento">Entretenimiento</option>
+                <option value="servicios">Servicios</option>
+                <option value="otros">Otros</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="deuda-notas">Notas:</label>
+              <textarea id="deuda-notas"></textarea>
+            </div>
+            <div class="form-group">
+              <label for="deuda-vencimiento">Fecha de Vencimiento:</label>
+              <input type="date" id="deuda-vencimiento" required />
+            </div>
+            <button type="submit">Registrar Deuda</button>
+          </form>
+          <div class="filters">
+            <div class="filter-group">
+              <label for="filtro-tipo">Filtrar por tipo:</label>
+              <select id="filtro-tipo">
+                <option value="todos">Todos</option>
+                <option value="mensual">Mensual</option>
+                <option value="diaria">Diaria</option>
+                <option value="unica">Única</option>
+              </select>
+            </div>
+          </div>
+          <div class="list" id="deudas-list"></div>
+        </section>
+        <section id="pagos-tab" class="tab-content no-print">
+          <form id="pago-form">
+            <div class="form-group">
+              <label for="pago-deuda">Deuda a pagar:</label>
+              <select id="pago-deuda" required>
+                <option value="">Seleccionar deuda</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="pago-monto">Monto ($):</label>
+              <input
+                type="number"
+                id="pago-monto"
+                min="0.01"
+                step="0.01"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="pago-fecha">Fecha:</label>
+              <input type="date" id="pago-fecha" required />
+            </div>
+            <div class="form-group">
+              <label for="pago-notas">Notas:</label>
+              <textarea id="pago-notas"></textarea>
+            </div>
+            <button type="submit">Registrar Pago</button>
+          </form>
+          <div class="list" id="pagos-list"></div>
+        </section>
+        <section id="reportes-tab" class="tab-content no-print">
+          <div class="filters">
+            <div class="filter-group">
+              <label for="reporte-mes">Mes:</label>
+              <select id="reporte-mes"></select>
+            </div>
+            <div class="filter-group">
+              <label for="reporte-anio">Año:</label>
+              <select id="reporte-anio"></select>
+            </div>
+            <button id="generar-reporte">Generar Reporte</button>
+            <button id="imprimir-reporte">Imprimir</button>
+          </div>
+          <div id="reporte" class="card">
+            <h2>Reporte de Gastos y Pagos</h2>
+            <div id="reporte-contenido"></div>
+          </div>
+        </section>
+      </main>
+    </div>
+    <!-- Modal de edición -->
+    <div class="modal" id="edit-modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title">Editar</h2>
+          <button class="close-modal" id="close-edit-modal">&times;</button>
+        </div>
+        <form id="edit-form">
+          <input type="hidden" id="edit-id" />
+          <input type="hidden" id="edit-type" />
+          <div class="form-group">
+            <label for="edit-nombre">Nombre/Concepto:</label>
+            <input type="text" id="edit-nombre" required />
           </div>
           <div class="form-group">
-            <label for="deuda-monto">Monto ($):</label>
-            <input type="number" id="deuda-monto" min="0.01" step="0.01" required />
+            <label for="edit-monto">Monto ($):</label>
+            <input
+              type="number"
+              id="edit-monto"
+              min="0.01"
+              step="0.01"
+              required
+            />
           </div>
           <div class="form-group">
-            <label for="deuda-fecha">Fecha:</label>
-            <input type="date" id="deuda-fecha" required />
+            <label for="edit-fecha">Fecha:</label>
+            <input type="date" id="edit-fecha" required />
           </div>
-          <div class="form-group">
-            <label for="deuda-tipo">Tipo:</label>
-            <select id="deuda-tipo">
+          <div class="form-group" id="edit-tipo-group">
+            <label for="edit-tipo">Tipo:</label>
+            <select id="edit-tipo">
               <option value="mensual">Mensual</option>
               <option value="diaria">Diaria</option>
               <option value="unica">Única</option>
             </select>
           </div>
           <div class="form-group">
-            <label for="deuda-categoria">Categoría:</label>
-            <select id="deuda-categoria" required>
+            <label for="edit-notas">Notas:</label>
+            <textarea id="edit-notas"></textarea>
+          </div>
+          <button type="submit">Guardar Cambios</button>
+        </form>
+      </div>
+    </div>
+    <!-- Modal de presupuesto -->
+    <div class="modal" id="budget-modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Nuevo Presupuesto</h2>
+          <button class="close-modal" id="close-budget-modal">&times;</button>
+        </div>
+        <form id="budget-form">
+          <div class="form-group">
+            <label for="budget-category">Categoría:</label>
+            <select id="budget-category">
               <option value="hogar">Hogar</option>
               <option value="transporte">Transporte</option>
               <option value="comida">Comida</option>
@@ -396,452 +646,413 @@
             </select>
           </div>
           <div class="form-group">
-            <label for="deuda-notas">Notas:</label>
-            <textarea id="deuda-notas"></textarea>
+            <label for="budget-amount">Monto ($):</label>
+            <input type="number" id="budget-amount" step="0.01" required />
           </div>
-          <div class="form-group">
-            <label for="deuda-vencimiento">Fecha de Vencimiento:</label>
-            <input type="date" id="deuda-vencimiento" required />
-          </div>
-          <button type="submit">Registrar Deuda</button>
+          <button type="submit">Guardar</button>
         </form>
-        <div class="filters">
-          <div class="filter-group">
-            <label for="filtro-tipo">Filtrar por tipo:</label>
-            <select id="filtro-tipo">
-              <option value="todos">Todos</option>
-              <option value="mensual">Mensual</option>
-              <option value="diaria">Diaria</option>
-              <option value="unica">Única</option>
-            </select>
-          </div>
-        </div>
-        <div class="list" id="deudas-list"></div>
-      </section>
-      <section id="pagos-tab" class="tab-content no-print">
-        <form id="pago-form">
-          <div class="form-group">
-            <label for="pago-deuda">Deuda a pagar:</label>
-            <select id="pago-deuda" required>
-              <option value="">Seleccionar deuda</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="pago-monto">Monto ($):</label>
-            <input type="number" id="pago-monto" min="0.01" step="0.01" required />
-          </div>
-          <div class="form-group">
-            <label for="pago-fecha">Fecha:</label>
-            <input type="date" id="pago-fecha" required />
-          </div>
-          <div class="form-group">
-            <label for="pago-notas">Notas:</label>
-            <textarea id="pago-notas"></textarea>
-          </div>
-          <button type="submit">Registrar Pago</button>
-        </form>
-        <div class="list" id="pagos-list"></div>
-      </section>
-      <section id="reportes-tab" class="tab-content no-print">
-        <div class="filters">
-          <div class="filter-group">
-            <label for="reporte-mes">Mes:</label>
-            <select id="reporte-mes"></select>
-          </div>
-          <div class="filter-group">
-            <label for="reporte-anio">Año:</label>
-            <select id="reporte-anio"></select>
-          </div>
-          <button id="generar-reporte">Generar Reporte</button>
-          <button id="imprimir-reporte">Imprimir</button>
-        </div>
-        <div id="reporte" class="card">
-          <h2>Reporte de Gastos y Pagos</h2>
-          <div id="reporte-contenido"></div>
-        </div>
-      </section>
-    </main>
-  </div>
-  <!-- Modal de edición -->
-  <div class="modal" id="edit-modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2 class="modal-title">Editar</h2>
-        <button class="close-modal" id="close-edit-modal">&times;</button>
       </div>
-      <form id="edit-form">
-        <input type="hidden" id="edit-id" />
-        <input type="hidden" id="edit-type" />
-        <div class="form-group">
-          <label for="edit-nombre">Nombre/Concepto:</label>
-          <input type="text" id="edit-nombre" required />
-        </div>
-        <div class="form-group">
-          <label for="edit-monto">Monto ($):</label>
-          <input type="number" id="edit-monto" min="0.01" step="0.01" required />
-        </div>
-        <div class="form-group">
-          <label for="edit-fecha">Fecha:</label>
-          <input type="date" id="edit-fecha" required />
-        </div>
-        <div class="form-group" id="edit-tipo-group">
-          <label for="edit-tipo">Tipo:</label>
-          <select id="edit-tipo">
-            <option value="mensual">Mensual</option>
-            <option value="diaria">Diaria</option>
-            <option value="unica">Única</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="edit-notas">Notas:</label>
-          <textarea id="edit-notas"></textarea>
-        </div>
-        <button type="submit">Guardar Cambios</button>
-      </form>
     </div>
-  </div>
-  <!-- Modal de presupuesto -->
-  <div class="modal" id="budget-modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2>Nuevo Presupuesto</h2>
-        <button class="close-modal" id="close-budget-modal">&times;</button>
-      </div>
-      <form id="budget-form">
-        <div class="form-group">
-          <label for="budget-category">Categoría:</label>
-          <select id="budget-category">
-            <option value="hogar">Hogar</option>
-            <option value="transporte">Transporte</option>
-            <option value="comida">Comida</option>
-            <option value="entretenimiento">Entretenimiento</option>
-            <option value="servicios">Servicios</option>
-            <option value="otros">Otros</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="budget-amount">Monto ($):</label>
-          <input type="number" id="budget-amount" step="0.01" required />
-        </div>
-        <button type="submit">Guardar</button>
-      </form>
-    </div>
-  </div>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script>
-    // Estado de la aplicación
-    let deudas = JSON.parse(localStorage.getItem("deudas")) || [];
-    let pagos = JSON.parse(localStorage.getItem("pagos")) || [];
-    let presupuestos = JSON.parse(localStorage.getItem("presupuestos")) || [];
-    let salarioSemanal = parseFloat(localStorage.getItem("salarioSemanal")) || 0;
-    let hasUnsavedChanges = false;
-    let chartInstance = null;
-    let fileHandle;
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+      // Estado de la aplicación
+      let deudas = JSON.parse(localStorage.getItem("deudas")) || [];
+      let pagos = JSON.parse(localStorage.getItem("pagos")) || [];
+      let presupuestos = JSON.parse(localStorage.getItem("presupuestos")) || [];
+      let salarioSemanal =
+        parseFloat(localStorage.getItem("salarioSemanal")) || 0;
+      let hasUnsavedChanges = false;
+      let chartInstance = null;
+      let fileHandle;
 
-    // Elementos del DOM
-    const tabs = document.querySelectorAll(".tab");
-    const tabContents = document.querySelectorAll(".tab-content");
-    const deudaForm = document.getElementById("deuda-form");
-    const pagoForm = document.getElementById("pago-form");
-    const deudasList = document.getElementById("deudas-list");
-    const pagosList = document.getElementById("pagos-list");
-    const pagoDeudaSelect = document.getElementById("pago-deuda");
-    const filtroTipo = document.getElementById("filtro-tipo");
-    const totalDebtElement = document.getElementById("total-debt");
-    const totalPaidElement = document.getElementById("total-paid");
-    const editModal = document.getElementById("edit-modal");
-    const editForm = document.getElementById("edit-form");
-    const closeEditModalBtn = document.getElementById("close-edit-modal");
-    const reporteMes = document.getElementById("reporte-mes");
-    const reporteAnio = document.getElementById("reporte-anio");
-    const generarReporteBtn = document.getElementById("generar-reporte");
-    const imprimirReporteBtn = document.getElementById("imprimir-reporte");
-    const reporteContenido = document.getElementById("reporte-contenido");
+      // Elementos del DOM
+      const tabs = document.querySelectorAll(".tab");
+      const tabContents = document.querySelectorAll(".tab-content");
+      const deudaForm = document.getElementById("deuda-form");
+      const pagoForm = document.getElementById("pago-form");
+      const deudasList = document.getElementById("deudas-list");
+      const pagosList = document.getElementById("pagos-list");
+      const pagoDeudaSelect = document.getElementById("pago-deuda");
+      const filtroTipo = document.getElementById("filtro-tipo");
+      const totalDebtElement = document.getElementById("total-debt");
+      const totalPaidElement = document.getElementById("total-paid");
+      const editModal = document.getElementById("edit-modal");
+      const editForm = document.getElementById("edit-form");
+      const closeEditModalBtn = document.getElementById("close-edit-modal");
+      const reporteMes = document.getElementById("reporte-mes");
+      const reporteAnio = document.getElementById("reporte-anio");
+      const generarReporteBtn = document.getElementById("generar-reporte");
+      const imprimirReporteBtn = document.getElementById("imprimir-reporte");
+      const reporteContenido = document.getElementById("reporte-contenido");
 
-    // Inicializar selectores de reporte
-    function initReportSelectors() {
-      const currentDate = new Date();
-      const currentYear = currentDate.getFullYear();
-      reporteMes.innerHTML = "";
-      for (let i = 0; i < 12; i++) {
-        const date = new Date(currentYear, i, 1);
-        const option = document.createElement("option");
-        option.value = i;
-        option.textContent = date.toLocaleString("es", { month: "long" });
-        if (i === currentDate.getMonth()) option.selected = true;
-        reporteMes.appendChild(option);
-      }
-      reporteAnio.innerHTML = "";
-      for (let i = currentYear - 2; i <= currentYear + 1; i++) {
-        const option = document.createElement("option");
-        option.value = i;
-        option.textContent = i;
-        if (i === currentYear) option.selected = true;
-        reporteAnio.appendChild(option);
-      }
-    }
-
-    // Renderizar gráfico de categorías con Chart.js
-    function renderCharts() {
-      const canvas = document.getElementById("categorias-chart");
-      if (deudas.length === 0) {
-        canvas.parentElement.innerHTML = "<p>No hay datos para mostrar</p>";
-        return;
-      }
-      if (chartInstance) chartInstance.destroy();
-      const categorias = {};
-      deudas.forEach(deuda => {
-        categorias[deuda.categoria] = (categorias[deuda.categoria] || 0) + deuda.monto;
-      });
-      const ctx = canvas.getContext("2d");
-      chartInstance = new Chart(ctx, {
-        type: "doughnut",
-        data: {
-          labels: Object.keys(categorias),
-          datasets: [{
-            data: Object.values(categorias),
-            backgroundColor: ["#6366f1", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#6b7280"]
-          }]
-        },
-        options: { responsive: true }
-      });
-    }
-
-    // Guardar datos en localStorage y marcar cambios sin guardar
-    function saveData() {
-      localStorage.setItem("deudas", JSON.stringify(deudas));
-      localStorage.setItem("pagos", JSON.stringify(pagos));
-      localStorage.setItem("presupuestos", JSON.stringify(presupuestos));
-      localStorage.setItem("salarioSemanal", salarioSemanal);
-      hasUnsavedChanges = true;
-      checkDueDates();
-    }
-
-    // Funciones de manejo de archivos: guardar, cargar y crear nuevo
-    async function saveFile() {
-      try {
-        const data = {
-          deudas,
-          pagos,
-          presupuestos,
-          salario: salarioSemanal,
-          metadata: { lastModified: new Date().toISOString(), version: 1.1 }
-        };
-        const blob = new Blob([JSON.stringify(data)], { type: "application/json" });
-        if (!fileHandle) {
-          fileHandle = await window.showSaveFilePicker({
-            types: [{ description: "Archivos de deudas", accept: { "application/json": [".json"] } }]
-          });
+      // Inicializar selectores de reporte
+      function initReportSelectors() {
+        const currentDate = new Date();
+        const currentYear = currentDate.getFullYear();
+        reporteMes.innerHTML = "";
+        for (let i = 0; i < 12; i++) {
+          const date = new Date(currentYear, i, 1);
+          const option = document.createElement("option");
+          option.value = i;
+          option.textContent = date.toLocaleString("es", { month: "long" });
+          if (i === currentDate.getMonth()) option.selected = true;
+          reporteMes.appendChild(option);
         }
-        const writable = await fileHandle.createWritable();
-        await writable.write(blob);
-        await writable.close();
-        hasUnsavedChanges = false;
-        alert("Archivo guardado correctamente");
-      } catch (err) {
-        console.error("Error al guardar:", err);
+        reporteAnio.innerHTML = "";
+        for (let i = currentYear - 2; i <= currentYear + 1; i++) {
+          const option = document.createElement("option");
+          option.value = i;
+          option.textContent = i;
+          if (i === currentYear) option.selected = true;
+          reporteAnio.appendChild(option);
+        }
       }
-    }
 
-    async function loadFile() {
-      try {
-        [fileHandle] = await window.showOpenFilePicker({
-          types: [{ description: "Archivos de deudas", accept: { "application/json": [".json"] } }]
+      // Renderizar gráfico de categorías con Chart.js
+      function renderCharts() {
+        const canvas = document.getElementById("categorias-chart");
+        if (deudas.length === 0) {
+          canvas.parentElement.innerHTML = "<p>No hay datos para mostrar</p>";
+          return;
+        }
+        if (chartInstance) chartInstance.destroy();
+        const categorias = {};
+        deudas.forEach((deuda) => {
+          categorias[deuda.categoria] =
+            (categorias[deuda.categoria] || 0) + deuda.monto;
         });
-        const file = await fileHandle.getFile();
-        const contents = await file.text();
-        const data = JSON.parse(contents);
-        deudas = data.deudas || [];
-        pagos = data.pagos || [];
-        presupuestos = data.presupuestos || [];
-        salarioSemanal = data.salario || 0;
-        document.getElementById("salario-semanal").value = salarioSemanal;
-        renderPresupuestos();
-        updatePresupuesto();
-        renderLists();
-        alert("Archivo cargado correctamente");
-      } catch (err) {
-        console.error("Error al cargar:", err);
+        const ctx = canvas.getContext("2d");
+        chartInstance = new Chart(ctx, {
+          type: "doughnut",
+          data: {
+            labels: Object.keys(categorias),
+            datasets: [
+              {
+                data: Object.values(categorias),
+                backgroundColor: [
+                  "#6366f1",
+                  "#10b981",
+                  "#f59e0b",
+                  "#ef4444",
+                  "#8b5cf6",
+                  "#6b7280",
+                ],
+              },
+            ],
+          },
+          options: { responsive: true },
+        });
       }
-    }
 
-    function newFile() {
-      if (confirm("¿Crear nuevo archivo? Se perderán los cambios no guardados")) {
-        deudas = [];
-        pagos = [];
-        presupuestos = [];
-        fileHandle = null;
-        renderLists();
+      // Guardar datos en localStorage y marcar cambios sin guardar
+      function saveData() {
+        localStorage.setItem("deudas", JSON.stringify(deudas));
+        localStorage.setItem("pagos", JSON.stringify(pagos));
+        localStorage.setItem("presupuestos", JSON.stringify(presupuestos));
+        localStorage.setItem("salarioSemanal", salarioSemanal);
+        hasUnsavedChanges = true;
+        checkDueDates();
       }
-    }
 
-    // Calcular gastos de la semana
-    function calcularGastosSemana() {
-      const hoy = new Date();
-      const inicioSemana = new Date(hoy);
-      inicioSemana.setDate(hoy.getDate() - hoy.getDay());
-      const finSemana = new Date(hoy);
-      finSemana.setDate(hoy.getDate() + (6 - hoy.getDay()));
-      return pagos.reduce((total, pago) => {
-        const fechaPago = new Date(pago.fecha);
-        return (fechaPago >= inicioSemana && fechaPago <= finSemana) ? total + pago.monto : total;
-      }, 0);
-    }
-
-    // Actualizar el presupuesto restante
-    function updatePresupuesto() {
-      const gastosSemana = calcularGastosSemana();
-      const restante = salarioSemanal - gastosSemana;
-      const salarioDisplay = document.getElementById("salario-display");
-      const presupuestoElement = document.getElementById("presupuesto-restante");
-      if (salarioDisplay) salarioDisplay.textContent = `$${salarioSemanal.toFixed(2)}`;
-      if (presupuestoElement) {
-        presupuestoElement.textContent = `$${restante.toFixed(2)}`;
-        presupuestoElement.className = `amount ${restante < 0 ? "negative" : "positive"}`;
-      }
-    }
-
-    // Renderizar lista de deudas
-    function renderDeudasList() {
-      const filtro = filtroTipo.value;
-      const deudasFiltradas = (filtro === "todos") ? deudas : deudas.filter(deuda => deuda.tipo === filtro);
-      deudasList.innerHTML = "";
-      if (deudasFiltradas.length === 0) {
-        deudasList.innerHTML = '<p class="item">No hay deudas registradas</p>';
-        return;
-      }
-      deudasFiltradas.forEach(deuda => {
-        const dueDate = new Date(deuda.vencimiento);
-        const today = new Date();
-        const pagosDeuda = pagos.filter(pago => pago.deudaId === deuda.id);
-        const totalPagado = pagosDeuda.reduce((sum, pago) => sum + pago.monto, 0);
-        const pendiente = deuda.monto - totalPagado;
-        const weeklyPayment = (pendiente / 4).toFixed(2);
-        let estadoClass = "";
-        if (totalPagado >= deuda.monto) {
-          estadoClass = "pagada";
-        } else if (dueDate < today) {
-          estadoClass = "vencida";
-        } else if (dueDate - today < 3 * 86400000) {
-          estadoClass = "proxima";
+      // Funciones de manejo de archivos: guardar, cargar y crear nuevo
+      async function saveFile() {
+        try {
+          const data = {
+            deudas,
+            pagos,
+            presupuestos,
+            salario: salarioSemanal,
+            metadata: { lastModified: new Date().toISOString(), version: 1.1 },
+          };
+          const blob = new Blob([JSON.stringify(data)], {
+            type: "application/json",
+          });
+          if (!fileHandle) {
+            fileHandle = await window.showSaveFilePicker({
+              types: [
+                {
+                  description: "Archivos de deudas",
+                  accept: { "application/json": [".json"] },
+                },
+              ],
+            });
+          }
+          const writable = await fileHandle.createWritable();
+          await writable.write(blob);
+          await writable.close();
+          hasUnsavedChanges = false;
+          alert("Archivo guardado correctamente");
+        } catch (err) {
+          console.error("Error al guardar:", err);
         }
-        const item = document.createElement("div");
-        item.className = `item ${estadoClass}`;
-        item.innerHTML = `
+      }
+
+      async function loadFile() {
+        try {
+          [fileHandle] = await window.showOpenFilePicker({
+            types: [
+              {
+                description: "Archivos de deudas",
+                accept: { "application/json": [".json"] },
+              },
+            ],
+          });
+          const file = await fileHandle.getFile();
+          const contents = await file.text();
+          const data = JSON.parse(contents);
+          deudas = data.deudas || [];
+          pagos = data.pagos || [];
+          presupuestos = data.presupuestos || [];
+          salarioSemanal = data.salario || 0;
+          document.getElementById("salario-semanal").value = salarioSemanal;
+          renderPresupuestos();
+          updatePresupuesto();
+          renderLists();
+          alert("Archivo cargado correctamente");
+        } catch (err) {
+          console.error("Error al cargar:", err);
+        }
+      }
+
+      function newFile() {
+        if (
+          confirm("¿Crear nuevo archivo? Se perderán los cambios no guardados")
+        ) {
+          deudas = [];
+          pagos = [];
+          presupuestos = [];
+          fileHandle = null;
+          renderLists();
+        }
+      }
+
+      // Calcular gastos de la semana
+      function calcularGastosSemana() {
+        const hoy = new Date();
+        const inicioSemana = new Date(hoy);
+        inicioSemana.setDate(hoy.getDate() - hoy.getDay());
+        const finSemana = new Date(hoy);
+        finSemana.setDate(hoy.getDate() + (6 - hoy.getDay()));
+        return pagos.reduce((total, pago) => {
+          const fechaPago = new Date(pago.fecha);
+          return fechaPago >= inicioSemana && fechaPago <= finSemana
+            ? total + pago.monto
+            : total;
+        }, 0);
+      }
+
+      // Actualizar el presupuesto restante
+      function updatePresupuesto() {
+        const gastosSemana = calcularGastosSemana();
+        const restante = salarioSemanal - gastosSemana;
+        const salarioDisplay = document.getElementById("salario-display");
+        const presupuestoElement = document.getElementById(
+          "presupuesto-restante"
+        );
+        if (salarioDisplay)
+          salarioDisplay.textContent = `$${salarioSemanal.toFixed(2)}`;
+        if (presupuestoElement) {
+          presupuestoElement.textContent = `$${restante.toFixed(2)}`;
+          presupuestoElement.className = `amount ${
+            restante < 0 ? "negative" : "positive"
+          }`;
+        }
+      }
+
+      // Renderizar lista de deudas
+      function renderDeudasList() {
+        const filtro = filtroTipo.value;
+        const deudasFiltradas =
+          filtro === "todos"
+            ? deudas
+            : deudas.filter((deuda) => deuda.tipo === filtro);
+        deudasList.innerHTML = "";
+        if (deudasFiltradas.length === 0) {
+          deudasList.innerHTML =
+            '<p class="item">No hay deudas registradas</p>';
+          return;
+        }
+        deudasFiltradas.forEach((deuda) => {
+          const dueDate = new Date(deuda.vencimiento);
+          const today = new Date();
+          const pagosDeuda = pagos.filter((pago) => pago.deudaId === deuda.id);
+          const totalPagado = pagosDeuda.reduce(
+            (sum, pago) => sum + pago.monto,
+            0
+          );
+          const pendiente = deuda.monto - totalPagado;
+          const weeklyPayment = (pendiente / 4).toFixed(2);
+          let estadoClass = "";
+          if (totalPagado >= deuda.monto) {
+            estadoClass = "pagada";
+          } else if (dueDate < today) {
+            estadoClass = "vencida";
+          } else if (dueDate - today < 3 * 86400000) {
+            estadoClass = "proxima";
+          }
+          const item = document.createElement("div");
+          item.className = `item ${estadoClass}`;
+          item.innerHTML = `
           <div class="item-details">
             <div class="item-title">${deuda.nombre}</div>
             <div class="item-desc">${deuda.notas || "Sin notas"}</div>
-            <div class="item-date">${formatDate(deuda.fecha)} | ${deuda.tipo}</div>
+            <div class="item-date">${formatDate(deuda.fecha)} | ${
+            deuda.tipo
+          }</div>
             <div class="progress-bar" style="margin-top: 10px; background: #e5e7eb; height: 8px; border-radius: 4px;">
-              <div style="width: ${(totalPagado/deuda.monto * 100).toFixed(0)}%; background: ${totalPagado >= deuda.monto ? "var(--success)" : "var(--primary)"}; height: 100%; border-radius: 4px;"></div>
+              <div style="width: ${((totalPagado / deuda.monto) * 100).toFixed(
+                0
+              )}%; background: ${
+            totalPagado >= deuda.monto ? "var(--success)" : "var(--primary)"
+          }; height: 100%; border-radius: 4px;"></div>
             </div>
-            ${deuda.tipo === "mensual" && pendiente > 0 ? `<div class="recommendation"><strong>Recomendación:</strong> Pagar $${weeklyPayment} semanales para liquidar en 4 semanas</div>` : ""}
+            ${
+              deuda.tipo === "mensual" && pendiente > 0
+                ? `<div class="recommendation"><strong>Recomendación:</strong> Pagar $${weeklyPayment} semanales para liquidar en 4 semanas</div>`
+                : ""
+            }
           </div>
-          <div class="item-amount ${pendiente > 0 ? "negative" : "positive"}">$${pendiente.toFixed(2)}</div>
+          <div class="item-amount ${
+            pendiente > 0 ? "negative" : "positive"
+          }">$${pendiente.toFixed(2)}</div>
           <div class="action-buttons">
-            <button class="btn-small btn-edit" onclick="openEditModal('${deuda.id}', 'deuda')">Editar</button>
-            <button class="btn-small btn-delete" onclick="deleteDeuda('${deuda.id}')">Eliminar</button>
+            <button class="btn-small btn-edit" onclick="openEditModal('${
+              deuda.id
+            }', 'deuda')">Editar</button>
+            <button class="btn-small btn-delete" onclick="deleteDeuda('${
+              deuda.id
+            }')">Eliminar</button>
           </div>
         `;
-        deudasList.appendChild(item);
-      });
-    }
-
-    // Renderizar lista de pagos
-    function renderPagosList() {
-      pagosList.innerHTML = "";
-      if (pagos.length === 0) {
-        pagosList.innerHTML = '<p class="item">No hay pagos registrados</p>';
-        return;
+          deudasList.appendChild(item);
+        });
       }
-      pagos.forEach(pago => {
-        const deuda = deudas.find(d => d.id === pago.deudaId);
-        const item = document.createElement("div");
-        item.className = "item";
-        item.innerHTML = `
+
+      // Renderizar lista de pagos
+      function renderPagosList() {
+        pagosList.innerHTML = "";
+        if (pagos.length === 0) {
+          pagosList.innerHTML = '<p class="item">No hay pagos registrados</p>';
+          return;
+        }
+        pagos.forEach((pago) => {
+          const deuda = deudas.find((d) => d.id === pago.deudaId);
+          const item = document.createElement("div");
+          item.className = "item";
+          item.innerHTML = `
           <div class="item-details">
-            <div class="item-title">${deuda ? deuda.nombre : "Deuda eliminada"}</div>
+            <div class="item-title">${
+              deuda ? deuda.nombre : "Deuda eliminada"
+            }</div>
             <div class="item-desc">${pago.notas || "Sin notas"}</div>
             <div class="item-date">${formatDate(pago.fecha)}</div>
           </div>
           <div class="item-amount positive">$${pago.monto.toFixed(2)}</div>
           <div class="action-buttons">
-            <button class="btn-small btn-edit" onclick="openEditModal('${pago.id}', 'pago')">Editar</button>
-            <button class="btn-small btn-delete" onclick="deletePago('${pago.id}')">Eliminar</button>
+            <button class="btn-small btn-edit" onclick="openEditModal('${
+              pago.id
+            }', 'pago')">Editar</button>
+            <button class="btn-small btn-delete" onclick="deletePago('${
+              pago.id
+            }')">Eliminar</button>
           </div>
         `;
-        pagosList.appendChild(item);
-      });
-    }
+          pagosList.appendChild(item);
+        });
+      }
 
-    // Calcular totales de deudas y pagos
-    function calculateTotals() {
-      let totalDeudas = 0;
-      deudas.forEach(deuda => {
-        const pagosPorDeuda = pagos.filter(pago => pago.deudaId === deuda.id);
-        const pagadoPorDeuda = pagosPorDeuda.reduce((sum, pago) => sum + pago.monto, 0);
-        const pendiente = Math.max(0, deuda.monto - pagadoPorDeuda);
-        totalDeudas += pendiente;
-      });
-      const totalPagado = pagos.reduce((sum, pago) => sum + pago.monto, 0);
-      if (totalDebtElement) totalDebtElement.textContent = `$${totalDeudas.toFixed(2)}`;
-      if (totalPaidElement) totalPaidElement.textContent = `$${totalPagado.toFixed(2)}`;
-    }
+      // Calcular totales de deudas y pagos
+      function calculateTotals() {
+        let totalDeudas = 0;
+        deudas.forEach((deuda) => {
+          const pagosPorDeuda = pagos.filter(
+            (pago) => pago.deudaId === deuda.id
+          );
+          const pagadoPorDeuda = pagosPorDeuda.reduce(
+            (sum, pago) => sum + pago.monto,
+            0
+          );
+          const pendiente = Math.max(0, deuda.monto - pagadoPorDeuda);
+          totalDeudas += pendiente;
+        });
+        const totalPagado = pagos.reduce((sum, pago) => sum + pago.monto, 0);
+        if (totalDebtElement)
+          totalDebtElement.textContent = `$${totalDeudas.toFixed(2)}`;
+        if (totalPaidElement)
+          totalPaidElement.textContent = `$${totalPagado.toFixed(2)}`;
+      }
 
-    // Renderizar presupuestos
-    function renderPresupuestos() {
-      const container = document.getElementById("presupuestos-list");
-      container.innerHTML = presupuestos.map(p => `
+      // Renderizar presupuestos
+      function renderPresupuestos() {
+        const container = document.getElementById("presupuestos-list");
+        container.innerHTML = presupuestos
+          .map(
+            (p) => `
         <div class="item">
           <div class="item-details">
             <div class="item-title">${p.categoria}</div>
             <div class="item-amount">$${p.monto.toFixed(2)}</div>
           </div>
         </div>
-      `).join("");
-    }
+      `
+          )
+          .join("");
+      }
 
-    // Actualizar todas las listas y totales
-    function renderLists() {
-      renderDeudasList();
-      renderPagosList();
-      updateDeudasSelect();
-      calculateTotals();
-      initReportSelectors();
-      updatePresupuesto();
-      renderCharts();
-    }
+      // Actualizar todas las listas y totales
+      function renderLists() {
+        renderDeudasList();
+        renderPagosList();
+        updateDeudasSelect();
+        calculateTotals();
+        initReportSelectors();
+        updatePresupuesto();
+        renderCharts();
+      }
 
-    // Actualizar el select de deudas en pagos
-    function updateDeudasSelect() {
-      pagoDeudaSelect.innerHTML = '<option value="">Seleccionar deuda</option>';
-      deudas.forEach(deuda => {
-        const option = document.createElement("option");
-        option.value = deuda.id;
-        option.textContent = deuda.nombre;
-        pagoDeudaSelect.appendChild(option);
-      });
-    }
+      // Actualizar el select de deudas en pagos
+      function updateDeudasSelect() {
+        pagoDeudaSelect.innerHTML =
+          '<option value="">Seleccionar deuda</option>';
+        deudas.forEach((deuda) => {
+          const option = document.createElement("option");
+          option.value = deuda.id;
+          option.textContent = deuda.nombre;
+          pagoDeudaSelect.appendChild(option);
+        });
+      }
 
-    // Generar reporte mensual
-    function generarReporte() {
-      const mes = parseInt(reporteMes.value);
-      const anio = parseInt(reporteAnio.value);
-      const startDate = new Date(anio, mes, 1);
-      const endDate = new Date(anio, mes + 1, 0);
-      const deudasDelMes = deudas.filter(deuda => {
-        const deudaDate = new Date(deuda.fecha);
-        return deuda.tipo === "mensual" || (deudaDate >= startDate && deudaDate <= endDate);
-      });
-      const pagosDelMes = pagos.filter(pago => {
-        const pagoDate = new Date(pago.fecha);
-        return pagoDate >= startDate && pagoDate <= endDate;
-      });
-      const totalDeudas = deudasDelMes.reduce((sum, deuda) => sum + deuda.monto, 0);
-      const totalPagos = pagosDelMes.reduce((sum, pago) => sum + pago.monto, 0);
-      const balance = totalPagos - totalDeudas;
-      let reporteHTML = `
-        <h3>Reporte de ${startDate.toLocaleString("es", { month: "long", year: "numeric" })}</h3>
+      // Generar reporte mensual
+      function generarReporte() {
+        const mes = parseInt(reporteMes.value);
+        const anio = parseInt(reporteAnio.value);
+        const startDate = new Date(anio, mes, 1);
+        const endDate = new Date(anio, mes + 1, 0);
+        const deudasDelMes = deudas.filter((deuda) => {
+          const deudaDate = new Date(deuda.fecha);
+          return (
+            deuda.tipo === "mensual" ||
+            (deudaDate >= startDate && deudaDate <= endDate)
+          );
+        });
+        const pagosDelMes = pagos.filter((pago) => {
+          const pagoDate = new Date(pago.fecha);
+          return pagoDate >= startDate && pagoDate <= endDate;
+        });
+        const totalDeudas = deudasDelMes.reduce(
+          (sum, deuda) => sum + deuda.monto,
+          0
+        );
+        const totalPagos = pagosDelMes.reduce(
+          (sum, pago) => sum + pago.monto,
+          0
+        );
+        const balance = totalPagos - totalDeudas;
+        let reporteHTML = `
+        <h3>Reporte de ${startDate.toLocaleString("es", {
+          month: "long",
+          year: "numeric",
+        })}</h3>
         <div class="summary">
           <div><strong>Total Deudas:</strong> $${totalDeudas.toFixed(2)}</div>
           <div><strong>Total Pagos:</strong> $${totalPagos.toFixed(2)}</div>
@@ -859,21 +1070,29 @@
           </thead>
           <tbody>
       `;
-      if (deudasDelMes.length > 0) {
-        deudasDelMes.forEach(deuda => {
-          reporteHTML += `
+        if (deudasDelMes.length > 0) {
+          deudasDelMes.forEach((deuda) => {
+            reporteHTML += `
             <tr>
-              <td style="padding:8px; border-bottom:1px solid #eee;">${deuda.nombre}</td>
-              <td style="padding:8px; border-bottom:1px solid #eee;">${deuda.tipo}</td>
-              <td style="padding:8px; border-bottom:1px solid #eee;">${formatDate(deuda.fecha)}</td>
-              <td style="text-align:right; padding:8px; border-bottom:1px solid #eee;">$${deuda.monto.toFixed(2)}</td>
+              <td style="padding:8px; border-bottom:1px solid #eee;">${
+                deuda.nombre
+              }</td>
+              <td style="padding:8px; border-bottom:1px solid #eee;">${
+                deuda.tipo
+              }</td>
+              <td style="padding:8px; border-bottom:1px solid #eee;">${formatDate(
+                deuda.fecha
+              )}</td>
+              <td style="text-align:right; padding:8px; border-bottom:1px solid #eee;">$${deuda.monto.toFixed(
+                2
+              )}</td>
             </tr>
           `;
-        });
-      } else {
-        reporteHTML += `<tr><td colspan="4" style="text-align:center; padding:8px;">No hay deudas en este período</td></tr>`;
-      }
-      reporteHTML += `
+          });
+        } else {
+          reporteHTML += `<tr><td colspan="4" style="text-align:center; padding:8px;">No hay deudas en este período</td></tr>`;
+        }
+        reporteHTML += `
           </tbody>
         </table>
         <h4>Desglose de Pagos</h4>
@@ -887,264 +1106,314 @@
           </thead>
           <tbody>
       `;
-      if (pagosDelMes.length > 0) {
-        pagosDelMes.forEach(pago => {
-          const deuda = deudas.find(d => d.id === pago.deudaId);
-          const deudaNombre = deuda ? deuda.nombre : "Deuda eliminada";
-          reporteHTML += `
+        if (pagosDelMes.length > 0) {
+          pagosDelMes.forEach((pago) => {
+            const deuda = deudas.find((d) => d.id === pago.deudaId);
+            const deudaNombre = deuda ? deuda.nombre : "Deuda eliminada";
+            reporteHTML += `
             <tr>
               <td style="padding:8px; border-bottom:1px solid #eee;">${deudaNombre}</td>
-              <td style="padding:8px; border-bottom:1px solid #eee;">${formatDate(pago.fecha)}</td>
-              <td style="text-align:right; padding:8px; border-bottom:1px solid #eee;">$${pago.monto.toFixed(2)}</td>
+              <td style="padding:8px; border-bottom:1px solid #eee;">${formatDate(
+                pago.fecha
+              )}</td>
+              <td style="text-align:right; padding:8px; border-bottom:1px solid #eee;">$${pago.monto.toFixed(
+                2
+              )}</td>
             </tr>
           `;
-        });
-      } else {
-        reporteHTML += `<tr><td colspan="3" style="text-align:center; padding:8px;">No hay pagos en este período</td></tr>`;
-      }
-      reporteHTML += `</tbody></table>`;
-      reporteContenido.innerHTML = reporteHTML;
-    }
-
-    // Formatear fecha (dd/mm/yyyy)
-    function formatDate(dateString) {
-      const date = new Date(dateString);
-      return date.toLocaleDateString("es-ES");
-    }
-
-    // Abrir modal para editar deuda o pago
-    function openEditModal(id, type) {
-      document.getElementById("edit-id").value = id;
-      document.getElementById("edit-type").value = type;
-      if (type === "deuda") {
-        const deuda = deudas.find(d => d.id === id);
-        if (deuda) {
-          document.getElementById("edit-nombre").value = deuda.nombre;
-          document.getElementById("edit-monto").value = deuda.monto;
-          document.getElementById("edit-fecha").value = deuda.fecha;
-          document.getElementById("edit-tipo").value = deuda.tipo;
-          document.getElementById("edit-notas").value = deuda.notas;
-          document.getElementById("edit-tipo-group").style.display = "flex";
-          document.getElementById("edit-nombre").readOnly = false;
+          });
+        } else {
+          reporteHTML += `<tr><td colspan="3" style="text-align:center; padding:8px;">No hay pagos en este período</td></tr>`;
         }
-      } else if (type === "pago") {
-        const pago = pagos.find(p => p.id === id);
-        if (pago) {
-          const deuda = deudas.find(d => d.id === pago.deudaId);
-          document.getElementById("edit-nombre").value = deuda ? deuda.nombre : "Deuda eliminada";
-          document.getElementById("edit-nombre").readOnly = true;
-          document.getElementById("edit-monto").value = pago.monto;
-          document.getElementById("edit-fecha").value = pago.fecha;
-          document.getElementById("edit-notas").value = pago.notas;
-          document.getElementById("edit-tipo-group").style.display = "none";
-        }
+        reporteHTML += `</tbody></table>`;
+        reporteContenido.innerHTML = reporteHTML;
       }
-      editModal.style.display = "flex";
-    }
 
-    // Cerrar modal de edición
-    function closeModal() {
-      editModal.style.display = "none";
-      document.getElementById("edit-nombre").readOnly = false;
-    }
+      // Formatear fecha (dd/mm/yyyy)
+      function formatDate(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleDateString("es-ES");
+      }
 
-    // Eliminar deuda (y sus pagos asociados si se confirma)
-    function deleteDeuda(id) {
-      if (confirm("¿Estás seguro de eliminar esta deuda?")) {
-        const relatedPayments = pagos.filter(pago => pago.deudaId === id);
-        if (relatedPayments.length > 0) {
-          if (confirm(`Esta deuda tiene ${relatedPayments.length} pagos asociados. ¿Deseas eliminar también los pagos?`)) {
-            pagos = pagos.filter(pago => pago.deudaId !== id);
+      // Abrir modal para editar deuda o pago
+      function openEditModal(id, type) {
+        document.getElementById("edit-id").value = id;
+        document.getElementById("edit-type").value = type;
+        if (type === "deuda") {
+          const deuda = deudas.find((d) => d.id === id);
+          if (deuda) {
+            document.getElementById("edit-nombre").value = deuda.nombre;
+            document.getElementById("edit-monto").value = deuda.monto;
+            document.getElementById("edit-fecha").value = deuda.fecha;
+            document.getElementById("edit-tipo").value = deuda.tipo;
+            document.getElementById("edit-notas").value = deuda.notas;
+            document.getElementById("edit-tipo-group").style.display = "flex";
+            document.getElementById("edit-nombre").readOnly = false;
+          }
+        } else if (type === "pago") {
+          const pago = pagos.find((p) => p.id === id);
+          if (pago) {
+            const deuda = deudas.find((d) => d.id === pago.deudaId);
+            document.getElementById("edit-nombre").value = deuda
+              ? deuda.nombre
+              : "Deuda eliminada";
+            document.getElementById("edit-nombre").readOnly = true;
+            document.getElementById("edit-monto").value = pago.monto;
+            document.getElementById("edit-fecha").value = pago.fecha;
+            document.getElementById("edit-notas").value = pago.notas;
+            document.getElementById("edit-tipo-group").style.display = "none";
           }
         }
-        deudas = deudas.filter(deuda => deuda.id !== id);
+        editModal.style.display = "flex";
+      }
+
+      // Cerrar modal de edición
+      function closeModal() {
+        editModal.style.display = "none";
+        document.getElementById("edit-nombre").readOnly = false;
+      }
+
+      // Eliminar deuda (y sus pagos asociados si se confirma)
+      function deleteDeuda(id) {
+        if (confirm("¿Estás seguro de eliminar esta deuda?")) {
+          const relatedPayments = pagos.filter((pago) => pago.deudaId === id);
+          if (relatedPayments.length > 0) {
+            if (
+              confirm(
+                `Esta deuda tiene ${relatedPayments.length} pagos asociados. ¿Deseas eliminar también los pagos?`
+              )
+            ) {
+              pagos = pagos.filter((pago) => pago.deudaId !== id);
+            }
+          }
+          deudas = deudas.filter((deuda) => deuda.id !== id);
+          saveData();
+          renderLists();
+        }
+      }
+
+      // Eliminar pago
+      function deletePago(id) {
+        if (confirm("¿Estás seguro de eliminar este pago?")) {
+          pagos = pagos.filter((pago) => pago.id !== id);
+          saveData();
+          renderLists();
+        }
+      }
+
+      // Verificar fechas de vencimiento y mostrar notificaciones
+      function checkDueDates() {
+        const now = new Date();
+        const upcomingDeudas = deudas.filter((deuda) => {
+          const dueDate = new Date(deuda.vencimiento);
+          const daysDiff = Math.ceil((dueDate - now) / (1000 * 60 * 60 * 24));
+          return daysDiff <= 3 && daysDiff >= 0 && !deuda.pagada;
+        });
+        // Actualizar badges en pestañas
+        document
+          .querySelectorAll(".tab .badge")
+          .forEach((badge) => badge.remove());
+        tabs.forEach((tab) => {
+          if (upcomingDeudas.length > 0) {
+            const badge = document.createElement("span");
+            badge.className = "badge";
+            badge.textContent = upcomingDeudas.length;
+            tab.appendChild(badge);
+          }
+        });
+        // Mostrar notificaciones
+        upcomingDeudas.forEach((deuda) => {
+          if (!deuda.notificada) {
+            showNotification(
+              `⚠️ Pago próximo: ${deuda.nombre} - Vence el ${formatDate(
+                deuda.vencimiento
+              )}`
+            );
+            deuda.notificada = true;
+          }
+        });
+      }
+
+      function showNotification(message) {
+        const notification = document.getElementById("main-notification");
+        notification.textContent = message;
+        notification.classList.add("visible");
+        setTimeout(() => notification.classList.remove("visible"), 5000);
+      }
+
+      // Eventos de formularios y botones
+      deudaForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const deuda = {
+          id: Date.now().toString(),
+          nombre: document.getElementById("deuda-nombre").value,
+          monto: parseFloat(document.getElementById("deuda-monto").value),
+          fecha: document.getElementById("deuda-fecha").value,
+          tipo: document.getElementById("deuda-tipo").value,
+          notas: document.getElementById("deuda-notas").value,
+          vencimiento: document.getElementById("deuda-vencimiento").value,
+          notificada: false,
+          categoria: document.getElementById("deuda-categoria").value,
+        };
+        deudas.push(deuda);
         saveData();
         renderLists();
-      }
-    }
+        deudaForm.reset();
+        document.getElementById("deuda-fecha").valueAsDate = new Date();
+      });
 
-    // Eliminar pago
-    function deletePago(id) {
-      if (confirm("¿Estás seguro de eliminar este pago?")) {
-        pagos = pagos.filter(pago => pago.id !== id);
+      pagoForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const deudaId = document.getElementById("pago-deuda").value;
+        if (!deudaId) {
+          alert("Por favor selecciona una deuda");
+          return;
+        }
+        const pago = {
+          id: Date.now().toString(),
+          deudaId,
+          monto: parseFloat(document.getElementById("pago-monto").value),
+          fecha: document.getElementById("pago-fecha").value,
+          notas: document.getElementById("pago-notas").value,
+        };
+        pagos.push(pago);
         saveData();
         renderLists();
-      }
-    }
-
-    // Verificar fechas de vencimiento y mostrar notificaciones
-    function checkDueDates() {
-      const now = new Date();
-      const upcomingDeudas = deudas.filter(deuda => {
-        const dueDate = new Date(deuda.vencimiento);
-        const daysDiff = Math.ceil((dueDate - now) / (1000 * 60 * 60 * 24));
-        return daysDiff <= 3 && daysDiff >= 0 && !deuda.pagada;
+        pagoForm.reset();
+        document.getElementById("pago-fecha").valueAsDate = new Date();
+        updateDeudasSelect();
       });
-      // Actualizar badges en pestañas
-      document.querySelectorAll(".tab .badge").forEach(badge => badge.remove());
-      tabs.forEach(tab => {
-        if (upcomingDeudas.length > 0) {
-          const badge = document.createElement("span");
-          badge.className = "badge";
-          badge.textContent = upcomingDeudas.length;
-          tab.appendChild(badge);
+
+      filtroTipo.addEventListener("change", () => renderDeudasList());
+
+      editForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const type = document.getElementById("edit-type").value;
+        const id = document.getElementById("edit-id").value;
+        if (type === "deuda") {
+          const index = deudas.findIndex((d) => d.id === id);
+          if (index !== -1) {
+            deudas[index] = {
+              ...deudas[index],
+              nombre: document.getElementById("edit-nombre").value,
+              monto: parseFloat(document.getElementById("edit-monto").value),
+              fecha: document.getElementById("edit-fecha").value,
+              tipo: document.getElementById("edit-tipo").value,
+              notas: document.getElementById("edit-notas").value,
+            };
+          }
+        } else if (type === "pago") {
+          const index = pagos.findIndex((p) => p.id === id);
+          if (index !== -1) {
+            pagos[index] = {
+              ...pagos[index],
+              monto: parseFloat(document.getElementById("edit-monto").value),
+              fecha: document.getElementById("edit-fecha").value,
+              notas: document.getElementById("edit-notas").value,
+            };
+          }
         }
+        closeModal();
+        saveData();
+        renderLists();
       });
-      // Mostrar notificaciones
-      upcomingDeudas.forEach(deuda => {
-        if (!deuda.notificada) {
-          showNotification(`⚠️ Pago próximo: ${deuda.nombre} - Vence el ${formatDate(deuda.vencimiento)}`);
-          deuda.notificada = true;
-        }
+
+      generarReporteBtn.addEventListener("click", generarReporte);
+      imprimirReporteBtn.addEventListener("click", () => window.print());
+      closeEditModalBtn.addEventListener("click", closeModal);
+
+      // Cerrar modales al hacer clic fuera
+      window.addEventListener("click", (event) => {
+        if (event.target === editModal) closeModal();
+        if (event.target === document.getElementById("budget-modal"))
+          document.getElementById("budget-modal").style.display = "none";
       });
-    }
 
-    function showNotification(message) {
-      const notification = document.getElementById("main-notification");
-      notification.textContent = message;
-      notification.classList.add("visible");
-      setTimeout(() => notification.classList.remove("visible"), 5000);
-    }
-
-    // Eventos de formularios y botones
-    deudaForm.addEventListener("submit", e => {
-      e.preventDefault();
-      const deuda = {
-        id: Date.now().toString(),
-        nombre: document.getElementById("deuda-nombre").value,
-        monto: parseFloat(document.getElementById("deuda-monto").value),
-        fecha: document.getElementById("deuda-fecha").value,
-        tipo: document.getElementById("deuda-tipo").value,
-        notas: document.getElementById("deuda-notas").value,
-        vencimiento: document.getElementById("deuda-vencimiento").value,
-        notificada: false,
-        categoria: document.getElementById("deuda-categoria").value
-      };
-      deudas.push(deuda);
-      saveData();
-      renderLists();
-      deudaForm.reset();
-      document.getElementById("deuda-fecha").valueAsDate = new Date();
-    });
-
-    pagoForm.addEventListener("submit", e => {
-      e.preventDefault();
-      const deudaId = document.getElementById("pago-deuda").value;
-      if (!deudaId) {
-        alert("Por favor selecciona una deuda");
-        return;
+      // Modal de presupuesto
+      function openBudgetModal() {
+        document.getElementById("budget-modal").style.display = "flex";
       }
-      const pago = {
-        id: Date.now().toString(),
-        deudaId,
-        monto: parseFloat(document.getElementById("pago-monto").value),
-        fecha: document.getElementById("pago-fecha").value,
-        notas: document.getElementById("pago-notas").value
-      };
-      pagos.push(pago);
-      saveData();
-      renderLists();
-      pagoForm.reset();
-      document.getElementById("pago-fecha").valueAsDate = new Date();
-      updateDeudasSelect();
-    });
-
-    filtroTipo.addEventListener("change", () => renderDeudasList());
-
-    editForm.addEventListener("submit", e => {
-      e.preventDefault();
-      const type = document.getElementById("edit-type").value;
-      const id = document.getElementById("edit-id").value;
-      if (type === "deuda") {
-        const index = deudas.findIndex(d => d.id === id);
-        if (index !== -1) {
-          deudas[index] = {
-            ...deudas[index],
-            nombre: document.getElementById("edit-nombre").value,
-            monto: parseFloat(document.getElementById("edit-monto").value),
-            fecha: document.getElementById("edit-fecha").value,
-            tipo: document.getElementById("edit-tipo").value,
-            notas: document.getElementById("edit-notas").value
-          };
+      document.getElementById("budget-form").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const categoria = document.getElementById("budget-category").value;
+        if (presupuestos.some((p) => p.categoria === categoria)) {
+          alert("¡Ya existe un presupuesto para esta categoría!");
+          return;
         }
-      } else if (type === "pago") {
-        const index = pagos.findIndex(p => p.id === id);
-        if (index !== -1) {
-          pagos[index] = {
-            ...pagos[index],
-            monto: parseFloat(document.getElementById("edit-monto").value),
-            fecha: document.getElementById("edit-fecha").value,
-            notas: document.getElementById("edit-notas").value
-          };
-        }
-      }
-      closeModal();
-      saveData();
-      renderLists();
-    });
-
-    generarReporteBtn.addEventListener("click", generarReporte);
-    imprimirReporteBtn.addEventListener("click", () => window.print());
-    closeEditModalBtn.addEventListener("click", closeModal);
-
-    // Cerrar modales al hacer clic fuera
-    window.addEventListener("click", event => {
-      if (event.target === editModal) closeModal();
-      if (event.target === document.getElementById("budget-modal"))
+        presupuestos.push({
+          categoria,
+          monto: parseFloat(document.getElementById("budget-amount").value),
+        });
+        saveData();
+        renderPresupuestos();
         document.getElementById("budget-modal").style.display = "none";
-    });
+      });
+      document
+        .getElementById("close-budget-modal")
+        .addEventListener("click", () => {
+          document.getElementById("budget-modal").style.display = "none";
+        });
 
-    // Modal de presupuesto
-    function openBudgetModal() {
-      document.getElementById("budget-modal").style.display = "flex";
-    }
-    document.getElementById("budget-form").addEventListener("submit", e => {
-      e.preventDefault();
-      const categoria = document.getElementById("budget-category").value;
-      if (presupuestos.some(p => p.categoria === categoria)) {
-        alert("¡Ya existe un presupuesto para esta categoría!");
-        return;
+      // Intervalos para verificación de vencimientos
+      setInterval(checkDueDates, 3600000);
+      setInterval(checkDueDates, 60000);
+
+      // Inicialización de la aplicación
+      function init() {
+        document.getElementById("salario-semanal").value = salarioSemanal;
+        initReportSelectors();
+        updateDeudasSelect();
+        renderLists();
+        checkDueDates();
+        document
+          .getElementById("salario-semanal")
+          .addEventListener("change", (e) => {
+            salarioSemanal = parseFloat(e.target.value) || 0;
+            updatePresupuesto();
+            saveData();
+          });
       }
-      presupuestos.push({
-        categoria,
-        monto: parseFloat(document.getElementById("budget-amount").value)
-      });
-      saveData();
-      renderPresupuestos();
-      document.getElementById("budget-modal").style.display = "none";
-    });
-    document.getElementById("close-budget-modal").addEventListener("click", () => {
-      document.getElementById("budget-modal").style.display = "none";
-    });
+      document.addEventListener("DOMContentLoaded", init);
 
-    // Intervalos para verificación de vencimientos
-    setInterval(checkDueDates, 3600000);
-    setInterval(checkDueDates, 60000);
-
-    // Inicialización de la aplicación
-    function init() {
-      document.getElementById("salario-semanal").value = salarioSemanal;
-      initReportSelectors();
-      updateDeudasSelect();
-      renderLists();
-      checkDueDates();
-      document.getElementById("salario-semanal").addEventListener("change", e => {
-        salarioSemanal = parseFloat(e.target.value) || 0;
-        updatePresupuesto();
-        saveData();
+      // Cambio de pestañas
+      tabs.forEach((tab) => {
+        tab.addEventListener("click", () => {
+          tabs.forEach((t) => t.classList.remove("active"));
+          tabContents.forEach((tc) => tc.classList.remove("active"));
+          tab.classList.add("active");
+          document
+            .getElementById(`${tab.dataset.tab}-tab`)
+            ?.classList.add("active");
+        });
       });
-    }
-    document.addEventListener("DOMContentLoaded", init);
 
-    // Cambio de pestañas
-    tabs.forEach(tab => {
-      tab.addEventListener("click", () => {
-        tabs.forEach(t => t.classList.remove("active"));
-        tabContents.forEach(tc => tc.classList.remove("active"));
-        tab.classList.add("active");
-        document.getElementById(`${tab.dataset.tab}-tab`)?.classList.add("active");
+      // Al cargar la aplicación, verifica si hay un tema guardado
+      document.addEventListener("DOMContentLoaded", () => {
+        const savedTheme = localStorage.getItem("theme") || "light";
+        if (savedTheme === "dark") {
+          document.body.classList.add("dark");
+        }
+
+        document
+          .getElementById("theme-toggle")
+          .addEventListener("click", () => {
+            document.body.classList.toggle("dark");
+            const currentTheme = document.body.classList.contains("dark")
+              ? "dark"
+              : "light";
+            localStorage.setItem("theme", currentTheme);
+          });
       });
-    });
-  </script>
-</body>
+
+      // Alternar menú hamburguesa
+      document
+        .getElementById("hamburger-menu")
+        .addEventListener("click", function () {
+          const nav = document.getElementById("mobile-nav");
+          const isOpen = nav.classList.toggle("open");
+          this.setAttribute("aria-expanded", isOpen);
+        });
+
+    </script>
+  </body>
 </html>
