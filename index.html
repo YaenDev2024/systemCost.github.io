@@ -28,21 +28,21 @@
         --success: #03dac6;
       }
       button {
-        background: var(--primary);
-        color: white;
-        border: none;
-        border-radius: 6px;
-        padding: 12px;
-        font-size: 1rem;
-        font-weight: 500;
-        cursor: pointer;
-        transition: background 0.3s, transform 0.2s;
-      }
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 12px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.3s, transform 0.2s;
+}
 
-      button:hover {
-        background: var(--primary-hover);
-        transform: scale(1.05);
-      }
+button:hover {
+  background: var(--primary-hover);
+  transform: scale(1.05);
+}
 
       /* Reset y estilos globales */
       * {
@@ -342,54 +342,6 @@
       .pagada {
         border-left: 4px solid var(--success);
       }
-      /* Estilos para el botón hamburguesa */
-      #hamburger-menu {
-        display: none;
-        background: none;
-        border: none;
-        font-size: 1.5rem;
-        cursor: pointer;
-      }
-
-      /* Menú de navegación para móviles */
-      .mobile-nav {
-        display: none;
-        background: var(--card);
-        position: absolute;
-        top: 60px; /* Ajusta según el alto de tu header */
-        left: 0;
-        width: 100%;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        transition: max-height 0.3s ease;
-      }
-      .mobile-nav.open {
-        display: block;
-      }
-
-      .mobile-nav ul {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-      }
-      .mobile-nav li {
-        border-bottom: 1px solid #ddd;
-      }
-      .mobile-nav li a {
-        display: block;
-        padding: 10px;
-        color: var(--text);
-        text-decoration: none;
-      }
-
-      /* Mostrar el botón hamburguesa y ocultar la navegación por pestañas en móviles */
-      @media (max-width: 600px) {
-        #hamburger-menu {
-          display: inline-block;
-        }
-        .tabs {
-          display: none;
-        }
-      }
     </style>
   </head>
   <body>
@@ -405,26 +357,8 @@
           <button onclick="saveFile()">Guardar como</button>
           <button onclick="loadFile()">Abrir</button>
           <button onclick="newFile()">Nuevo</button>
-          <button id="theme-toggle" aria-label="Cambiar tema">
-            Cambiar Tema
-          </button>
-          <!-- Botón hamburguesa para móvil -->
-          <button id="hamburger-menu" aria-label="Menú" aria-expanded="false">
-            &#9776;
-          </button>
+          <button id="theme-toggle">Cambiar Tema</button>
         </div>
-        <!-- Menú de navegación para móviles -->
-        <nav
-          id="mobile-nav"
-          class="mobile-nav"
-          aria-label="Navegación principal"
-        >
-          <ul>
-            <li><a href="#deudas-tab">Deudas</a></li>
-            <li><a href="#pagos-tab">Pagos</a></li>
-            <li><a href="#reportes-tab">Reportes</a></li>
-          </ul>
-        </nav>
         <div style="margin-top: 15px; max-width: 300px; margin: 0 auto">
           <div class="form-group">
             <label for="salario-semanal">Salario Semanal ($):</label>
@@ -1404,16 +1338,6 @@
             localStorage.setItem("theme", currentTheme);
           });
       });
-
-      // Alternar menú hamburguesa
-      document
-        .getElementById("hamburger-menu")
-        .addEventListener("click", function () {
-          const nav = document.getElementById("mobile-nav");
-          const isOpen = nav.classList.toggle("open");
-          this.setAttribute("aria-expanded", isOpen);
-        });
-
     </script>
   </body>
 </html>
